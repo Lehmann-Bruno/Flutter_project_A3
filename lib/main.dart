@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+
 void main() {
   runApp(MyApp());
 }
@@ -124,13 +125,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class MenuPage extends StatelessWidget {
+class MenuPage extends StatefulWidget {
+  @override
+  State<MenuPage> createState() => _MenuPageState();
+}
 
+class _MenuPageState extends State<MenuPage> {
   @override
   Widget build(BuildContext context) {
-
-    
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Produtos'),
@@ -145,11 +147,124 @@ class MenuPage extends StatelessWidget {
               itemCount: products.length,
               itemBuilder: (context, index) {
                 return Produto01(product: products[index]);
-              }
+              },
             ),
           ),
         ),
       ),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            onPressed: () => _showAddProductDialog(context),
+            child: Icon(Icons.add),
+            tooltip: 'Adicionar Produto',
+          ),
+          SizedBox(height: 10),
+          FloatingActionButton(
+            onPressed: () => _showRemoveProductDialog(context),
+            child: Icon(Icons.remove),
+            tooltip: 'Remover Produto',
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddProductDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    final priceController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Adicionar Produto'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Nome do Produto',
+                ),
+              ),
+              TextField(
+                controller: priceController,
+                decoration: InputDecoration(
+                  labelText: 'Preço do Produto',
+                  hintText: 'Ex: 12.50',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final name = nameController.text;
+                final priceText = priceController.text;
+                final price = double.tryParse(priceText);
+
+                if (name.isNotEmpty && price != null && price > 0) {
+                  setState(() {
+                    products.add(Product(name: name, price: price));
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: Text('Adicionar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showRemoveProductDialog(BuildContext context) {
+    if (products.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nenhum produto disponível para remover.')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Remover Produto'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(products[index].name),
+                  trailing: Icon(Icons.delete, color: Colors.red),
+                  onTap: () {
+                    setState(() {
+                      products.removeAt(index);
+                    });
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancelar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
